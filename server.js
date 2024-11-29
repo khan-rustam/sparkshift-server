@@ -109,8 +109,7 @@ app.post("/api/contact", async (req, res) => {
   <div
     style="background-color: #f4f4f4;  padding: 20px; align-items: center;  border-radius: 10px;   margin-bottom: 20px;" >
     <div style="color: #333333; font-size: 24px; font-weight: bold text-align: center align-items: center">
-      <img src="https://sjc04pap002files.storage.live.com/y4mObO2InTZxxKcXmNAqPSGbVEU4fZk7glhLS_mEbZqt1uA_Q7Ee05NuqvaXUPnQy8_dVVksYtEJIubc4Bh4PWrT7IdyPcxTy_-O_cXNbshyfgObUV4yYMqgmTe70_l4qxwySim8GLQ3nH1pQNDuijWp1Y8csLfkNUoXOB12dXwc6ASltIoWfgSFVn2I2n7AavA6QU5k9KqhjBymVOdGIfXSHo0WrJ1IVSVdkCmrHwgygE?encodeFailures=1&width=880&height=219">
-
+      <img src='https://sjc04pap002files.storage.live.com/y4m43oy5oMyJ-bICNOcqBY-iXabBo4pEf8anVUDy8ZTz6g6kxwVYlSP2-Ipjs0YR0CPszB03XoQ7BEcZQfVAfWfyWfs2G3sTwpleSgzgAdbESHR6xSpjNJYvd2nKVnTrg5Po81YgRr2oGj_8H7Fg8I8pCvS0SsctEFi9UPBTFLHgDyPnGDzuiAbOQ8iSjSyV45tushn_IBWNz-mo-YXcQcxddPT-OAT-I23Sn0ScyGKIGY?encodeFailures=1&width=1547&height=384' alt="Sparkshift" style="height: 50px; margin-bottom: 15px; filter: drop-shadow(0 4px 6px rgba(130, 87, 229, 0.2));">
   </div>
   <div
     style=" background-color: #ffffff;padding: 30px;  border-radius: 10px; margin-bottom: 20px; border: 1px solid #e0e0e0;  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); " >
