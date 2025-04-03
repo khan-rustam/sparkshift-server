@@ -1,7 +1,7 @@
 # SparkShift Backend 🚀
 
 <div align="center">
-  <img src="../Frontend/public/logo.png" alt="SparkShift Backend Logo" width="150"/>
+  <img src="https://sparkshift.digital/assets/logo-Dop5KKen.png" alt="SparkShift Backend Logo" width="150"/>
   
   [![Node.js](https://img.shields.io/badge/Node.js-Latest-green.svg)](https://nodejs.org/)
   [![Express](https://img.shields.io/badge/Express-4.18.2-000000.svg)](https://expressjs.com/)
