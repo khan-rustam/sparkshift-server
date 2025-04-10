@@ -23,9 +23,23 @@ let isProcessingQueue = false;
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://sparkshift.digital' 
-    : 'http://localhost:5173',
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://sparkshift.digital', 
+      'https://api.sparkshift.digital',
+      'http://localhost:5173'
+    ];
+    
+    // Allow requests with no origin (like mobile apps, curl requests, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked request from:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
