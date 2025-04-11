@@ -25,15 +25,14 @@ let isProcessingQueue = false;
 app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
-      'https://sparkshift.digital', 
+      'https://sparkshift.digital',
       'https://api.sparkshift.digital',
-      'http://localhost:5173',
-      'https://www.sparkshift.digital'
+      'http://localhost:5173'
     ];
-    
+
     // Allow requests with no origin (like mobile apps, curl requests, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
@@ -41,13 +40,7 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 600, // Cache preflight request for 10 minutes
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  credentials: true
 }));
 
 // Handle preflight requests
@@ -314,11 +307,9 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     await connectDB();
-    const PORT = process.env.PORT || 4000;
-    const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-    
-    app.listen(PORT, HOST, () => {
-      console.log(`Server is running on ${HOST}:${PORT} 🚀`);
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT} 🚀`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
