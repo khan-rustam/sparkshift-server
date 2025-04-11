@@ -11,18 +11,15 @@
 
 ## Overview
 
-The SparkShift Backend is a Node.js server built with Express.js and MongoDB. It provides a robust API with secure authentication, file uploads, and real-time data handling.
+The SparkShift Backend is a Node.js server built with Express.js and MongoDB. It provides a robust API with secure authentication, file uploads, email services, and real-time data handling.
 
 ## Directory Structure
 
 ```
 server/
-├── config/           # Configuration files
-│   ├── db.js        # Database configuration
-│   └── cloudinary.js # Cloud storage setup
 ├── routes/          # API routes
 │   ├── auth.js      # Authentication routes
-│   ├── users.js     # User management
+│   ├── portfolio.js # Portfolio management
 │   └── ...         # Other route files
 ├── models/          # MongoDB models
 │   ├── User.js      # User model
@@ -30,7 +27,6 @@ server/
 ├── middleware/      # Custom middleware
 │   ├── auth.js      # Authentication middleware
 │   └── ...         # Other middleware
-├── utils/          # Utility functions
 ├── .env            # Environment variables
 └── server.js       # Main server file
 ```
@@ -38,13 +34,13 @@ server/
 ## Features
 
 - 🔒 JWT Authentication
-- 📧 Email notifications
-- ☁️ Cloud storage integration
+- 📧 Email services with queue system
+- 📊 Password reset with OTP
 - 🔄 Real-time updates
-- 📝 File uploads
 - 🛡️ Security middleware
-- 📊 Data validation
+- 📌 Contact form handling
 - 🔍 Error handling
+- ⚡ Portfolio management
 
 ## Tech Stack
 
@@ -52,28 +48,28 @@ server/
 - **Framework**: Express.js
 - **Database**: MongoDB
 - **Authentication**: JWT
-- **File Storage**: Cloudinary
 - **Email Service**: Nodemailer
-- **Security**: bcryptjs
-- **File Upload**: multer
+- **Security**: bcryptjs, CORS protection
+- **Environment**: dotenv
 
 ## API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user
+- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/forgot-password` - Request password reset OTP
+- `POST /api/auth/verify-reset-otp` - Verify password reset OTP
+- `POST /api/auth/reset-password` - Reset user password
 
-### Users
-- `GET /api/users` - Get all users
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
+### Portfolio
+- `GET /api/portfolio` - Get portfolio items
+- `POST /api/portfolio` - Create portfolio item
+- `PUT /api/portfolio/:id` - Update portfolio item
+- `DELETE /api/portfolio/:id` - Delete portfolio item
 
-### File Upload
-- `POST /api/upload` - Upload file
-- `DELETE /api/upload/:id` - Delete file
+### Contact
+- `POST /api/contact` - Submit contact form
 
 ## Getting Started
 
@@ -107,7 +103,7 @@ Start the development server:
 npm run dev
 ```
 
-The server will be available at `http://localhost:5000`
+The server will be available at `http://localhost:4000`
 
 ### Production
 
@@ -120,45 +116,54 @@ npm start
 
 Required environment variables:
 ```env
-PORT=5000
+PORT=4000
 MONGODB_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-SMTP_HOST=your_smtp_host
-SMTP_PORT=your_smtp_port
-SMTP_USER=your_smtp_user
-SMTP_PASS=your_smtp_password
+
+EMAIL_ADMIN=admin_email@example.com
+EMAIL_USER=smtp_user@example.com
+EMAIL_PASSWORD=smtp_password
+EMAIL_HOST_SMTP=smtp.example.com
+EMAIL_PORT_SMTP=465
+EMAIL_HOST_IMAP=imap.example.com
+EMAIL_PORT_IMAP=993
 ```
+
+## Email Configuration
+
+The server uses Nodemailer with the following features:
+- Email queue system with retry logic
+- Separate transporter instances for auth and general email
+- Increased connection timeouts for reliability
+- TLS security with minimum version TLSv1.2
+- Connection pooling for better performance
 
 ## Security Features
 
 - JWT Authentication
 - Password hashing with bcrypt
 - CORS protection
-- Rate limiting
 - Input validation
-- XSS protection
-- Helmet security headers
+- Secure email transmission
 
 ## Error Handling
 
-The server implements a centralized error handling system:
-- Custom error classes
-- Error logging
+The server implements a robust error handling system:
+- Custom error logging
 - Client-friendly error messages
 - HTTP status codes
+- Email sending retry mechanism
 
 ## Database Models
 
 ### User Model
 ```javascript
 {
-  username: String,
   email: String,
   password: String,
   role: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdAt: Date,
   updatedAt: Date
 }

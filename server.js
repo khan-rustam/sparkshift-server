@@ -96,9 +96,9 @@ const transporter = nodemailer.createTransport({
   maxMessages: 50,
   rateDelta: 1000,
   rateLimit: 5,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 45000,
   debug: process.env.NODE_ENV === 'development',
 });
 
@@ -303,7 +303,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     await connectDB();
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT} 🚀`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

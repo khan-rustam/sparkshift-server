@@ -28,9 +28,9 @@ const transporter = nodemailer.createTransport({
   maxMessages: 50,
   rateDelta: 1000,
   rateLimit: 5,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 45000,
   debug: true,
   logger: true
 });
@@ -98,38 +98,152 @@ const sendOTPEmail = async (email, otp) => {
   }
 };
 
+// Send OTP email for registration
+const sendRegistrationOTPEmail = async (email, otp) => {
+  const mailOptions = {
+    from: `"Sparkshift" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Email Verification OTP - Sparkshift',
+    html: `
+      <div style="background-color: #1a1a1a; color: #ffffff; padding: 40px 20px; min-height: 100vh; margin: 0; font-family: Arial, sans-serif;">
+        <div style="background-color: #242424; max-width: 600px; margin: 0 auto; border-radius: 16px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src='https://sparkshift.digital/assets/logo-Dop5KKen.png' alt="Sparkshift" style="height: 60px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(130, 87, 229, 0.3));">
+          </div>
+          <div style="background-color: #2d2d2d; padding: 30px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #3d3d3d;">
+            <h2 style="color: #9333ea; margin-top: 0; margin-bottom: 20px; font-size: 24px; text-align: center;">Email Verification Code</h2>
+            <p style="color: #ffffff; line-height: 1.6; margin-bottom: 25px; text-align: center;">
+              Thank you for signing up with Sparkshift. To complete your registration, please use the following verification code:
+            </p>
+            <div style="background-color: #1a1a1a; padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px; border: 1px solid #3d3d3d;">
+              <h1 style="color: #9333ea; margin: 0; font-size: 36px; letter-spacing: 8px; font-weight: bold;">${otp}</h1>
+            </div>
+            <p style="color: #ffffff; line-height: 1.6; margin-bottom: 25px; text-align: center;">
+              This verification code will expire in 10 minutes.
+            </p>
+            <p style="color: #a0a0a0; font-size: 14px; margin-top: 25px; text-align: center;">
+              If you didn't request to create an account with Sparkshift, please ignore this email.
+            </p>
+          </div>
+          <div style="text-align: center; margin-top: 20px;">
+            <p style="color: #a0a0a0; font-size: 12px; margin: 0;">
+              © ${new Date().getFullYear()} Sparkshift. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Registration OTP email sent successfully:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending registration OTP email:", error);
+    throw error;
+  }
+};
+
+// Send Registration OTP
+router.post('/send-registration-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+    
+    // Generate OTP
+    const otp = generateOTP();
+    
+    // Store OTP with expiry time (10 minutes)
+    otpStore.set(`register:${email}`, {
+      otp,
+      timestamp: Date.now(),
+      attempts: 0,
+      expiresAt: Date.now() + 600000 // 10 minutes
+    });
+    
+    // Send OTP email
+    await sendRegistrationOTPEmail(email, otp);
+    
+    res.status(200).json({ message: 'Verification code sent to your email' });
+  } catch (error) {
+    console.error('Send Registration OTP error:', error);
+    res.status(500).json({ message: 'Failed to send verification code' });
+  }
+});
+
 // Register new user
 router.post('/register', async (req, res) => {
   try {
     console.log('Registration request received:', { ...req.body, password: '[REDACTED]' });
     
-    const {  email, password } = req.body;
+    const { name, email, password, otp } = req.body;
 
     // Validate required fields
-    if (!email || !password) {
+    if (!email || !password || !otp) {
       console.log("Missing required fields:", {
         email: !!email,
         password: !!password,
+        otp: !!otp
       });
       return res.status(400).json({ message: "All fields are required" });
     }
-
+    
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
       console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
-
-    console.log('Creating new user...');
-    // Create new user
+    
+    // Verify OTP
+    const otpData = otpStore.get(`register:${email}`);
+    if (!otpData) {
+      return res.status(400).json({ message: 'No verification code found. Please request a new code.' });
+    }
+    
+    if (otpData.otp !== otp) {
+      // Increment failed attempts
+      otpData.attempts += 1;
+      otpStore.set(`register:${email}`, otpData);
+      
+      // If too many attempts, invalidate the OTP
+      if (otpData.attempts >= 3) {
+        otpStore.delete(`register:${email}`);
+        return res.status(400).json({ message: 'Too many failed attempts. Please request a new code.' });
+      }
+      
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+    
+    // Check if OTP has expired
+    if (Date.now() > otpData.expiresAt) {
+      otpStore.delete(`register:${email}`);
+      return res.status(400).json({ message: 'Verification code has expired. Please request a new code.' });
+    }
+    
+    // OTP verified, create new user
+    console.log('Creating new user with verified email...');
     user = new User({
+      name: name || email.split('@')[0],
       email,
       password
     });
 
     await user.save();
     console.log('User saved successfully:', user._id);
+    
+    // Remove OTP from store
+    otpStore.delete(`register:${email}`);
 
     // Create JWT token
     const token = jwt.sign(
@@ -141,7 +255,8 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       token,
       user: {
-          id: user._id,
+        id: user._id,
+        name: user.name || email.split('@')[0],
         email: user.email,
         role: user.role
       }
@@ -191,6 +306,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user._id,
+        name: user.name || email.split('@')[0],
         email: user.email,
         role: user.role
       }
